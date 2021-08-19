@@ -114,5 +114,5 @@ Resources:
       TargetPipelineVersion: !GetAtt ExampleCodepipeline.Version
       Filters:
         - JsonPath: "$.ref"
-          MatchEquals: refs/heads/master
+          MatchEquals: refs/tags/next-release
 
