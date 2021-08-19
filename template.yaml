@@ -102,4 +102,17 @@ Resources:
               InputArtifacts:
                 - Name: app-source
 
+  ExampleCodepipelineWebhook:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: "{{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}"
+      RegisterWithThirdParty: true
+      TargetPipeline: !Ref ExampleCodepipeline
+      TargetAction: App-Source
+      TargetPipelineVersion: !GetAtt ExampleCodepipeline.Version
+      Filters:
+        - JsonPath: "$.ref"
+          MatchEquals: refs/heads/master
 
