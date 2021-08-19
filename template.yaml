@@ -40,6 +40,10 @@ Resources:
             Resource: "*"
             Action:
               - s3:*
+          - Effect: Allow
+            Resource: "*"
+            Action:
+              - secretsmanager:*
 
   ExampleCodepipelineBucket:
     Type: AWS::S3::Bucket
@@ -79,7 +83,7 @@ Resources:
                 Owner: danludwig
                 Repo: codepipeline
                 Branch: master
-                OAuthToken: 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
+                OAuthToken: "{{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}"
                 PollForSourceChanges: false
               OutputArtifacts:
                 - Name: app-source
