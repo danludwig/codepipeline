@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+
+  ExampleCodepipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - sts:AssumeRole        
+
+  ExampleCodepipelineServicePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ExampleCodepipelineServicePolicy
+      Roles:
+        - !Ref ExampleCodepipelineServiceRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Resource: "*"
+            Action:
+              - iam:PassRole
+            Condition:
+              StringEqualsIfExists:
+                iam:PassedToService:
+                  - cloudformation.amazonaws.com
+          - Effect: Allow
+            Resource: "*"
+            Action:
+              - codestar-connections:UseConnection
+          - Effect: Allow
+            Resource: "*"
+            Action:
+              - s3:*
+
+  ExampleCodepipelineBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ExampleDeployBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ExampleCodepipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ExampleCodepipelineBucket
+      RoleArn: !GetAtt ExampleCodepipelineServiceRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: App-Source
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: "1"
+              Configuration:
+                Owner: danludwig
+                Repo: codepipeline
+                Branch: master
+                OAuthToken: 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
+                PollForSourceChanges: false
+              OutputArtifacts:
+                - Name: app-source
+        - Name: Deploy
+          Actions:
+            - Name: Pretend-Deploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: "1"
+              Configuration:
+                BucketName: !Ref ExampleDeployBucket
+                Extract: false
+                ObjectKey: footestbar
+              InputArtifacts:
+                - Name: app-source
+
+
